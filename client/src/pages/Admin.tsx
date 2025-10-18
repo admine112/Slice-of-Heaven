@@ -238,10 +238,10 @@ export default function Admin() {
 
   // Admin Dashboard
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12 md:py-16">
+    <div className="container mx-auto px-4 md:px-6 py-8 md:py-16">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="font-heading text-4xl md:text-5xl font-bold">{t('admin.title')}</h1>
+      <div className="flex justify-between items-center mb-6 md:mb-8">
+        <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">{t('admin.title')}</h1>
         <Button variant="outline" onClick={() => setIsLoggedIn(false)} data-testid="button-admin-logout">
           <LogOut className="mr-2 h-4 w-4" />
           {t('admin.logout')}

@@ -46,13 +46,13 @@ export default function Menu() {
   }
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12 md:py-16">
+    <div className="container mx-auto px-4 md:px-6 py-8 md:py-16">
       {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="font-heading text-5xl md:text-6xl font-bold mb-4">
+      <div className="text-center mb-8 md:mb-12">
+        <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-4 leading-tight">
           {t('menu.title')}
         </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
           {language === 'en' 
             ? 'Choose from our selection of handcrafted pizzas, made with premium ingredients'
             : 'Оберіть з нашого асортименту піц ручної роботи, приготованих з преміальних інгредієнтів'

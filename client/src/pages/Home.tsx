@@ -19,7 +19,7 @@ export default function Home() {
         
         {/* Content */}
         <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">
-          <h1 className="font-heading text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-4 md:mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight px-2">
             SLICE OF HEAVEN
           </h1>
           
@@ -60,22 +60,22 @@ export default function Home() {
       <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6 hover-elevate rounded-lg transition-all duration-300">
-              <div className="text-5xl mb-4">🍕</div>
-              <h3 className="font-heading text-2xl font-bold mb-2">{t('home.premiumQuality')}</h3>
-              <p className="text-muted-foreground">{t('home.premiumDesc')}</p>
+            <div className="text-center p-5 md:p-6 hover-elevate rounded-lg transition-all duration-300 bg-card">
+              <div className="text-4xl md:text-5xl mb-3 md:mb-4">🍕</div>
+              <h3 className="font-heading text-xl md:text-2xl font-bold mb-2">{t('home.premiumQuality')}</h3>
+              <p className="text-sm md:text-base text-muted-foreground">{t('home.premiumDesc')}</p>
             </div>
             
-            <div className="text-center p-6 hover-elevate rounded-lg transition-all duration-300">
-              <div className="text-5xl mb-4">🔥</div>
-              <h3 className="font-heading text-2xl font-bold mb-2">{t('home.fireBaked')}</h3>
-              <p className="text-muted-foreground">{t('home.fireBakedDesc')}</p>
+            <div className="text-center p-5 md:p-6 hover-elevate rounded-lg transition-all duration-300 bg-card">
+              <div className="text-4xl md:text-5xl mb-3 md:mb-4">🔥</div>
+              <h3 className="font-heading text-xl md:text-2xl font-bold mb-2">{t('home.fireBaked')}</h3>
+              <p className="text-sm md:text-base text-muted-foreground">{t('home.fireBakedDesc')}</p>
             </div>
             
-            <div className="text-center p-6 hover-elevate rounded-lg transition-all duration-300">
-              <div className="text-5xl mb-4">⚡</div>
-              <h3 className="font-heading text-2xl font-bold mb-2">{t('home.fastDelivery')}</h3>
-              <p className="text-muted-foreground">{t('home.fastDeliveryDesc')}</p>
+            <div className="text-center p-5 md:p-6 hover-elevate rounded-lg transition-all duration-300 bg-card">
+              <div className="text-4xl md:text-5xl mb-3 md:mb-4">⚡</div>
+              <h3 className="font-heading text-xl md:text-2xl font-bold mb-2">{t('home.fastDelivery')}</h3>
+              <p className="text-sm md:text-base text-muted-foreground">{t('home.fastDeliveryDesc')}</p>
             </div>
           </div>
         </div>
