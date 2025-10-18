@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'wouter';
 import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import logoImage from '@assets/generated_images/Pizza_logo_icon_orange_58b11467.png';
@@ -10,6 +10,11 @@ export function Header() {
   const [location] = useLocation();
   const { language, setLanguage, t } = useI18n();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu when location changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
 
   const navItems = [
     { path: '/', label: t('nav.home') },
@@ -47,30 +52,32 @@ export function Header() {
           </nav>
 
           {/* Language Switcher + Mobile Menu */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Language Toggle */}
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-1 shadow-sm border border-border">
               <button
                 onClick={() => setLanguage('en')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                className={`px-4 py-2 text-sm font-bold rounded-md transition-all duration-200 ${
                   language === 'en'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-md scale-105'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background'
                 }`}
                 data-testid="button-language-en"
+                title="Switch to English"
               >
-                EN
+                🇬🇧 EN
               </button>
               <button
                 onClick={() => setLanguage('ua')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                className={`px-4 py-2 text-sm font-bold rounded-md transition-all duration-200 ${
                   language === 'ua'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-md scale-105'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background'
                 }`}
                 data-testid="button-language-ua"
+                title="Перемкнути на українську"
               >
-                UA
+                🇺🇦 UA
               </button>
             </div>
 
@@ -103,6 +110,41 @@ export function Header() {
                   </Button>
                 </Link>
               ))}
+              
+              {/* Mobile Language Switcher */}
+              <div className="mt-4 pt-4 border-t border-border/40">
+                <p className="text-xs text-muted-foreground mb-2 px-3">
+                  {language === 'en' ? 'Language / Мова' : 'Мова / Language'}
+                </p>
+                <div className="flex gap-2 px-3">
+                  <button
+                    onClick={() => {
+                      setLanguage('en');
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`flex-1 px-4 py-2 text-sm font-bold rounded-md transition-all ${
+                      language === 'en'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    🇬🇧 English
+                  </button>
+                  <button
+                    onClick={() => {
+                      setLanguage('ua');
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`flex-1 px-4 py-2 text-sm font-bold rounded-md transition-all ${
+                      language === 'ua'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    🇺🇦 Українська
+                  </button>
+                </div>
+              </div>
             </div>
           </nav>
         )}

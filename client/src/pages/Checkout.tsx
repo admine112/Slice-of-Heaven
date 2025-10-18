@@ -13,7 +13,8 @@ import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Package } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 type OrderFormData = z.infer<typeof insertOrderSchema>;
 
@@ -22,6 +23,8 @@ export default function Checkout() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [orderData, setOrderData] = useState<any>(null);
+  const [orderNumber, setOrderNumber] = useState<number | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('orderData');
@@ -41,7 +44,7 @@ export default function Checkout() {
       deliveryAddress: '',
       pizzaId: orderData?.pizza?.id || 0,
       size: orderData?.size || 'medium',
-      extraIngredients: orderData?.ingredients?.map((i: any) => String(i.id)) || [],
+      extraIngredients: JSON.stringify(orderData?.ingredients?.map((i: any) => String(i.id)) || []),
       totalPrice: String(orderData?.total || 0),
     },
   });
@@ -50,22 +53,78 @@ export default function Checkout() {
     if (orderData) {
       form.setValue('pizzaId', orderData.pizza.id);
       form.setValue('size', orderData.size);
-      form.setValue('extraIngredients', orderData.ingredients.map((i: any) => String(i.id)));
+      form.setValue('extraIngredients', JSON.stringify(orderData.ingredients.map((i: any) => String(i.id))));
       form.setValue('totalPrice', String(orderData.total.toFixed(2)));
     }
   }, [orderData, form]);
 
   const createOrderMutation = useMutation({
-    mutationFn: (data: OrderFormData) => apiRequest('POST', '/api/orders', data),
-    onSuccess: () => {
-      toast({
-        title: t('common.success'),
-        description: t('checkout.success'),
-      });
-      localStorage.removeItem('orderData');
-      setTimeout(() => setLocation('/'), 2000);
+    mutationFn: async (data: OrderFormData) => {
+      try {
+        // Save to database
+        const response = await apiRequest('POST', '/api/orders', data);
+        const dbResponse = await response.json();
+        console.log('Order created:', dbResponse);
+        
+        if (!dbResponse || !dbResponse.id) {
+          throw new Error('Invalid order response');
+        }
+        
+        // Send email via Formspree with order number
+        const emailData = {
+          email: data.customerEmail,
+          name: data.customerName,
+          phone: data.customerPhone,
+          address: data.deliveryAddress,
+          pizza: orderData?.pizza?.nameEn || 'Pizza',
+          size: data.size,
+          total: data.totalPrice,
+          orderNumber: dbResponse.id,
+          _subject: `🍕 New Order #${dbResponse.id}`,
+          message: `🍕 NEW ORDER #${dbResponse.id}\n\n` +
+                   `Customer: ${data.customerName}\n` +
+                   `Email: ${data.customerEmail}\n` +
+                   `Phone: ${data.customerPhone}\n\n` +
+                   `Pizza: ${orderData?.pizza?.nameEn}\n` +
+                   `Size: ${data.size}\n` +
+                   `Total: $${data.totalPrice}\n\n` +
+                   `Delivery Address:\n${data.deliveryAddress}\n\n` +
+                   `Order Number: #${dbResponse.id}`
+        };
+        
+        try {
+          const emailResponse = await fetch('https://formspree.io/f/meorndkv', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(emailData),
+          });
+          
+          if (!emailResponse.ok) {
+            console.error('Email send failed:', await emailResponse.text());
+          } else {
+            console.log('Email sent successfully');
+          }
+        } catch (emailError) {
+          console.error('Email error:', emailError);
+          // Don't fail the order if email fails
+        }
+        
+        return dbResponse;
+      } catch (error) {
+        console.error('Order creation error:', error);
+        throw error;
+      }
     },
-    onError: () => {
+    onSuccess: (data) => {
+      console.log('Order success:', data);
+      setOrderNumber(data.id);
+      setShowSuccessDialog(true);
+      localStorage.removeItem('orderData');
+    },
+    onError: (error: any) => {
+      console.error('Mutation error:', error);
       toast({
         title: t('common.error'),
         description: language === 'en' ? 'Failed to place order' : 'Не вдалося оформити замовлення',
@@ -256,6 +315,63 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+
+      {/* Success Dialog with Order Number */}
+      <Dialog open={showSuccessDialog} onOpenChange={(open) => {
+        setShowSuccessDialog(open);
+        if (!open) {
+          setTimeout(() => setLocation('/'), 500);
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex justify-center mb-4">
+              <div className="rounded-full bg-green-100 p-3">
+                <CheckCircle className="h-12 w-12 text-green-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-2xl">
+              {language === 'en' ? 'Order Placed Successfully!' : 'Замовлення успішно оформлено!'}
+            </DialogTitle>
+            <DialogDescription className="text-center space-y-4 pt-4">
+              <div className="bg-primary/10 rounded-lg p-6 border-2 border-primary">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Package className="h-6 w-6 text-primary" />
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {language === 'en' ? 'Your Order Number' : 'Номер вашого замовлення'}
+                  </span>
+                </div>
+                <div className="text-4xl font-bold text-primary">
+                  #{orderNumber}
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {language === 'en' 
+                  ? 'A confirmation email has been sent to your email address with order details.'
+                  : 'Лист з підтвердженням та деталями замовлення надіслано на вашу електронну пошту.'
+                }
+              </p>
+              <p className="text-sm font-medium">
+                {language === 'en'
+                  ? 'Thank you for your order! 🍕'
+                  : 'Дякуємо за ваше замовлення! 🍕'
+                }
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center pt-4">
+            <Button
+              onClick={() => {
+                setShowSuccessDialog(false);
+                setTimeout(() => setLocation('/'), 500);
+              }}
+              className="glow-orange"
+            >
+              {language === 'en' ? 'Back to Home' : 'На головну'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

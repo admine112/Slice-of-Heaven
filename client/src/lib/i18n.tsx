@@ -97,6 +97,40 @@ const translations: Translations = {
   'common.loading': { en: 'Loading...', ua: 'Завантаження...' },
   'common.error': { en: 'Error', ua: 'Помилка' },
   'common.success': { en: 'Success', ua: 'Успіх' },
+  
+  // Footer
+  'footer.quickLinks': { en: 'Quick Links', ua: 'Швидкі посилання' },
+  'footer.contact': { en: 'Contact', ua: 'Контакти' },
+  'footer.description': { 
+    en: 'Premium handcrafted pizzas made with love. Every slice is a little piece of heaven.',
+    ua: 'Преміальні піци ручної роботи, зроблені з любов\'ю. Кожен шматок — це маленький рай.'
+  },
+  'footer.slogan': { en: 'Taste the Sky. One Slice at a Time.', ua: 'Скуштуй небо. По шматочку.' },
+  'footer.address': { 
+    en: '123 Heaven Street, Pizza City, PC 12345',
+    ua: 'вул. Небесна, 123, Київ, 01001'
+  },
+  'footer.hours': { en: 'Mon-Sun: 10:00 - 23:00', ua: 'Пн-Нд: 10:00 - 23:00' },
+  'footer.rights': { en: 'All rights reserved.', ua: 'Всі права захищені.' },
+  'footer.privacy': { en: 'Privacy Policy', ua: 'Політика конфіденційності' },
+  'footer.terms': { en: 'Terms of Service', ua: 'Умови використання' },
+  
+  // Home page
+  'home.premiumQuality': { en: 'Premium Quality', ua: 'Преміум якість' },
+  'home.premiumDesc': { 
+    en: 'Handcrafted with the finest ingredients',
+    ua: 'Ручна робота з найкращих інгредієнтів'
+  },
+  'home.fireBaked': { en: 'Fire-Baked', ua: 'Печена на вогні' },
+  'home.fireBakedDesc': { 
+    en: 'Cooked to perfection in our wood-fired oven',
+    ua: 'Приготовлена до досконалості в нашій дров\'яній печі'
+  },
+  'home.fastDelivery': { en: 'Fast Delivery', ua: 'Швидка доставка' },
+  'home.fastDeliveryDesc': { 
+    en: 'Hot and fresh to your door in 30 minutes',
+    ua: 'Гаряча і свіжа до ваших дверей за 30 хвилин'
+  },
 };
 
 interface I18nContextType {
@@ -116,6 +150,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem('language', language);
     document.documentElement.lang = language;
+    
+    // Update page title based on language
+    const baseTitle = 'Slice of Heaven - Premium Pizza';
+    const titleSuffix = language === 'en' ? '' : ' | Преміум Піца';
+    document.title = baseTitle + titleSuffix;
   }, [language]);
 
   const t = (key: string): string => {

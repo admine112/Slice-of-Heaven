@@ -1,5 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import multer from "multer";
+import fs from "fs";
 import { storage } from "./storage";
 import { 
   insertPizzaSchema, 
@@ -9,7 +14,56 @@ import {
   insertAdminSchema 
 } from "@shared/schema";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Configure multer for image uploads
+const uploadDir = path.join(__dirname, '..', 'attached_assets', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storageConfig = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'pizza-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storageConfig,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve static files from attached_assets
+  app.use('/attached_assets', express.static(path.join(__dirname, '..', 'attached_assets')));
+
+  // Image upload endpoint
+  app.post("/api/upload", upload.single('image'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      const imageUrl = `/attached_assets/uploads/${req.file.filename}`;
+      res.json({ imageUrl });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Upload failed" });
+    }
+  });
   // Admin authentication
   app.post("/api/admin/login", async (req, res) => {
     try {
@@ -138,6 +192,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(contact);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Invalid data" });
+    }
+  });
+
+  app.get("/api/contacts", async (req, res) => {
+    try {
+      const contacts = await storage.getAllContacts();
+      res.json(contacts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch contacts" });
     }
   });
 

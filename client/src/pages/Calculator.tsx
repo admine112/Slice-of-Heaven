@@ -124,17 +124,17 @@ export default function Calculator() {
                       }`}
                       data-testid={`option-pizza-${pizza.id}`}
                     >
-                      <div className="flex gap-3">
+                      <div className="flex flex-col gap-3">
                         <img
                           src={pizza.imageUrl}
                           alt={language === 'en' ? pizza.nameEn : pizza.nameUa}
-                          className="w-16 h-16 rounded-md object-cover"
+                          className="w-full h-32 rounded-md object-cover"
                         />
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold truncate">
+                        <div className="space-y-1">
+                          <h4 className="font-semibold text-sm leading-tight">
                             {language === 'en' ? pizza.nameEn : pizza.nameUa}
                           </h4>
-                          <p className="text-sm text-muted-foreground">${pizza.price}</p>
+                          <p className="text-lg font-bold text-primary">${pizza.price}</p>
                         </div>
                       </div>
                     </div>
@@ -150,7 +150,7 @@ export default function Calculator() {
               </CardHeader>
               <CardContent>
                 <RadioGroup value={selectedSize} onValueChange={(v) => setSelectedSize(v as any)}>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {(['small', 'medium', 'large'] as const).map((size) => (
                       <div key={size} className="relative">
                         <RadioGroupItem
@@ -161,16 +161,16 @@ export default function Calculator() {
                         />
                         <Label
                           htmlFor={size}
-                          className="flex flex-col items-center justify-center rounded-lg border-2 border-border p-4 hover-elevate cursor-pointer peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 transition-all"
+                          className="flex flex-col items-center justify-center rounded-lg border-2 border-border p-6 hover-elevate cursor-pointer peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 transition-all min-h-[140px]"
                         >
-                          <span className="text-3xl mb-2">
+                          <span className="text-4xl mb-3">
                             {size === 'small' ? '🍕' : size === 'medium' ? '🍕🍕' : '🍕🍕🍕'}
                           </span>
-                          <span className="font-semibold capitalize">{t(`calc.${size}`)}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {size === 'small' && '8"'}
-                            {size === 'medium' && '12"'}
-                            {size === 'large' && '16"'}
+                          <span className="font-bold text-lg capitalize mb-1">{t(`calc.${size}`)}</span>
+                          <span className="text-sm text-muted-foreground font-medium">
+                            {size === 'small' && '8" (20cm)'}
+                            {size === 'medium' && '12" (30cm)'}
+                            {size === 'large' && '16" (40cm)'}
                           </span>
                         </Label>
                       </div>
@@ -192,11 +192,12 @@ export default function Calculator() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {ingredients.filter(i => i.available).map((ingredient) => (
                     <div
                       key={ingredient.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border hover-elevate transition-all"
+                      className="flex items-center gap-3 p-3 rounded-lg border hover-elevate transition-all cursor-pointer"
+                      onClick={() => toggleIngredient(ingredient.id)}
                     >
                       <Checkbox
                         id={`ingredient-${ingredient.id}`}
@@ -206,10 +207,10 @@ export default function Calculator() {
                       />
                       <Label
                         htmlFor={`ingredient-${ingredient.id}`}
-                        className="flex-1 cursor-pointer flex justify-between items-center"
+                        className="flex-1 cursor-pointer flex justify-between items-center gap-2"
                       >
-                        <span>{language === 'en' ? ingredient.nameEn : ingredient.nameUa}</span>
-                        <span className="text-sm text-muted-foreground">+${ingredient.price}</span>
+                        <span className="text-sm font-medium">{language === 'en' ? ingredient.nameEn : ingredient.nameUa}</span>
+                        <span className="text-sm font-bold text-primary whitespace-nowrap">+${ingredient.price}</span>
                       </Label>
                     </div>
                   ))}
@@ -220,62 +221,67 @@ export default function Calculator() {
 
           {/* Right: Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-20" data-testid="card-order-summary">
-              <CardHeader>
-                <CardTitle>{language === 'en' ? 'Order Summary' : 'Підсумок замовлення'}</CardTitle>
+            <Card className="lg:sticky lg:top-20" data-testid="card-order-summary">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl">{language === 'en' ? 'Order Summary' : 'Підсумок замовлення'}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {selectedPizza ? (
                   <>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {language === 'en' ? 'Pizza' : 'Піца'}:
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          {language === 'en' ? 'Pizza:' : 'Піца:'}
                         </span>
-                        <span className="font-medium">
+                        <span className="font-semibold text-sm text-right">
                           {language === 'en' ? selectedPizza.nameEn : selectedPizza.nameUa}
                         </span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {language === 'en' ? 'Size' : 'Розмір'}:
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          {language === 'en' ? 'Size:' : 'Розмір:'}
                         </span>
-                        <span className="font-medium capitalize">{t(`calc.${selectedSize}`)}</span>
+                        <span className="font-semibold text-sm capitalize">{t(`calc.${selectedSize}`)}</span>
                       </div>
                       {selectedIngredients.length > 0 && (
-                        <div className="pt-2 border-t">
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {language === 'en' ? 'Extra toppings' : 'Додаткові начинки'}:
+                        <div className="pt-3 border-t space-y-2">
+                          <p className="text-sm font-medium text-muted-foreground">
+                            {language === 'en' ? 'Extra toppings:' : 'Додаткові начинки:'}
                           </p>
-                          {selectedIngredients.map(ingId => {
-                            const ing = ingredients.find(i => i.id === ingId);
-                            return ing ? (
-                              <div key={ing.id} className="flex justify-between text-sm pl-2">
-                                <span>{language === 'en' ? ing.nameEn : ing.nameUa}</span>
-                                <span>+${ing.price}</span>
-                              </div>
-                            ) : null;
-                          })}
+                          <div className="space-y-1.5">
+                            {selectedIngredients.map(ingId => {
+                              const ing = ingredients.find(i => i.id === ingId);
+                              return ing ? (
+                                <div key={ing.id} className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">{language === 'en' ? ing.nameEn : ing.nameUa}</span>
+                                  <span className="font-medium text-primary">+${ing.price}</span>
+                                </div>
+                              ) : null;
+                            })}
+                          </div>
                         </div>
                       )}
                     </div>
                     
                     <div className="pt-4 border-t">
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-semibold">{t('calc.total')}:</span>
-                        <span className="text-2xl font-bold text-primary" data-testid="text-total-price">
+                        <span className="text-xl font-bold">{t('calc.total')}:</span>
+                        <span className="text-3xl font-bold text-primary" data-testid="text-total-price">
                           ${calculateTotal().toFixed(2)}
                         </span>
                       </div>
                     </div>
                   </>
                 ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    {t('calc.selectPizzaFirst')}
-                  </p>
+                  <div className="text-center py-12">
+                    <PizzaIcon className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
+                    <p className="text-sm text-muted-foreground">
+                      {t('calc.selectPizzaFirst')}
+                    </p>
+                  </div>
                 )}
               </CardContent>
-              <CardFooter>
+              <CardFooter className="pt-4">
                 <Button
                   onClick={handlePlaceOrder}
                   disabled={!selectedPizza}

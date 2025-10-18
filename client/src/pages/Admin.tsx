@@ -9,10 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Trash2, Plus, LogOut } from 'lucide-react';
-import type { Pizza, InsertPizza } from '@shared/schema';
+import { Edit, Trash2, Plus, LogOut, Pizza as PizzaIcon, ShoppingCart, MessageSquare } from 'lucide-react';
+import type { Pizza, InsertPizza, Order, Contact } from '@shared/schema';
 
 export default function Admin() {
   const { t, language } = useI18n();
@@ -22,6 +24,7 @@ export default function Admin() {
   const [password, setPassword] = useState('');
   const [editingPizza, setEditingPizza] = useState<Pizza | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState<Partial<InsertPizza>>({
     nameEn: '',
     nameUa: '',
@@ -35,6 +38,16 @@ export default function Admin() {
 
   const { data: pizzas = [], isLoading } = useQuery<Pizza[]>({
     queryKey: ['/api/pizzas'],
+    enabled: isLoggedIn,
+  });
+
+  const { data: orders = [] } = useQuery<Order[]>({
+    queryKey: ['/api/orders'],
+    enabled: isLoggedIn,
+  });
+
+  const { data: contacts = [] } = useQuery<Contact[]>({
+    queryKey: ['/api/contacts'],
     enabled: isLoggedIn,
   });
 
@@ -136,6 +149,42 @@ export default function Admin() {
     setIsDialogOpen(true);
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json();
+      setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
+      
+      toast({
+        title: t('common.success'),
+        description: language === 'en' ? 'Image uploaded successfully' : 'Зображення успішно завантажено',
+      });
+    } catch (error) {
+      toast({
+        title: t('common.error'),
+        description: language === 'en' ? 'Failed to upload image' : 'Не вдалося завантажити зображення',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   // Login Screen
   if (!isLoggedIn) {
     return (
@@ -193,56 +242,149 @@ export default function Admin() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="font-heading text-4xl md:text-5xl font-bold">{t('admin.title')}</h1>
-        <div className="flex gap-2">
-          <Button onClick={openAddDialog} className="glow-orange" data-testid="button-add-pizza">
-            <Plus className="mr-2 h-4 w-4" />
-            {t('admin.addPizza')}
-          </Button>
-          <Button variant="outline" onClick={() => setIsLoggedIn(false)} data-testid="button-admin-logout">
-            <LogOut className="mr-2 h-4 w-4" />
-            {t('admin.logout')}
-          </Button>
-        </div>
+        <Button variant="outline" onClick={() => setIsLoggedIn(false)} data-testid="button-admin-logout">
+          <LogOut className="mr-2 h-4 w-4" />
+          {t('admin.logout')}
+        </Button>
       </div>
 
-      {/* Pizzas List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {pizzas.map((pizza) => (
-          <Card key={pizza.id} className="overflow-hidden" data-testid={`admin-card-pizza-${pizza.id}`}>
-            <img src={pizza.imageUrl} alt={pizza.nameEn} className="w-full h-48 object-cover" />
-            <CardHeader>
-              <CardTitle className="flex justify-between items-start">
-                <span>{pizza.nameEn}</span>
-                <span className="text-primary">${pizza.price}</span>
-              </CardTitle>
-              <CardDescription className="line-clamp-2">{pizza.descriptionEn}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-between items-center">
-              <div className="space-x-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => openEditDialog(pizza)}
-                  data-testid={`button-edit-pizza-${pizza.id}`}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => deletePizzaMutation.mutate(pizza.id)}
-                  data-testid={`button-delete-pizza-${pizza.id}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-              <span className={`text-sm ${pizza.available ? 'text-green-600' : 'text-red-600'}`}>
-                {pizza.available ? (language === 'en' ? 'Available' : 'Доступна') : (language === 'en' ? 'Unavailable' : 'Недоступна')}
-              </span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Tabs */}
+      <Tabs defaultValue="pizzas" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsTrigger value="pizzas" className="flex items-center gap-2">
+            <PizzaIcon className="h-4 w-4" />
+            {language === 'en' ? 'Pizzas' : 'Піци'} ({pizzas.length})
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            {language === 'en' ? 'Orders' : 'Замовлення'} ({orders.length})
+          </TabsTrigger>
+          <TabsTrigger value="contacts" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            {language === 'en' ? 'Messages' : 'Повідомлення'} ({contacts.length})
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Pizzas Tab */}
+        <TabsContent value="pizzas">
+          <div className="mb-4 flex justify-end">
+            <Button onClick={openAddDialog} className="glow-orange" data-testid="button-add-pizza">
+              <Plus className="mr-2 h-4 w-4" />
+              {t('admin.addPizza')}
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pizzas.map((pizza) => (
+              <Card key={pizza.id} className="overflow-hidden" data-testid={`admin-card-pizza-${pizza.id}`}>
+                <img src={pizza.imageUrl} alt={pizza.nameEn} className="w-full h-48 object-cover" />
+                <CardHeader>
+                  <CardTitle className="flex justify-between items-start">
+                    <span>{pizza.nameEn}</span>
+                    <span className="text-primary">${pizza.price}</span>
+                  </CardTitle>
+                  <CardDescription className="line-clamp-2">{pizza.descriptionEn}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-between items-center">
+                  <div className="space-x-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openEditDialog(pizza)}
+                      data-testid={`button-edit-pizza-${pizza.id}`}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => deletePizzaMutation.mutate(pizza.id)}
+                      data-testid={`button-delete-pizza-${pizza.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Badge variant={pizza.available ? "default" : "secondary"}>
+                    {pizza.available ? (language === 'en' ? 'Available' : 'Доступна') : (language === 'en' ? 'Unavailable' : 'Недоступна')}
+                  </Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* Orders Tab */}
+        <TabsContent value="orders">
+          <div className="space-y-4">
+            {orders.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  {language === 'en' ? 'No orders yet' : 'Замовлень поки немає'}
+                </CardContent>
+              </Card>
+            ) : (
+              orders.map((order) => (
+                <Card key={order.id}>
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-start">
+                      <span>{language === 'en' ? 'Order' : 'Замовлення'} #{order.id}</span>
+                      <Badge>{order.status}</Badge>
+                    </CardTitle>
+                    <CardDescription>
+                      {new Date(order.createdAt).toLocaleString(language === 'en' ? 'en-US' : 'uk-UA')}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium">{language === 'en' ? 'Customer' : 'Клієнт'}</p>
+                        <p className="text-sm text-muted-foreground">{order.customerName}</p>
+                        <p className="text-sm text-muted-foreground">{order.customerEmail}</p>
+                        <p className="text-sm text-muted-foreground">{order.customerPhone}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{language === 'en' ? 'Delivery' : 'Доставка'}</p>
+                        <p className="text-sm text-muted-foreground">{order.deliveryAddress}</p>
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t">
+                      <p className="text-sm font-medium">{language === 'en' ? 'Size' : 'Розмір'}: {order.size}</p>
+                      <p className="text-lg font-bold text-primary">{language === 'en' ? 'Total' : 'Разом'}: ${order.totalPrice}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Contacts Tab */}
+        <TabsContent value="contacts">
+          <div className="space-y-4">
+            {contacts.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  {language === 'en' ? 'No messages yet' : 'Повідомлень поки немає'}
+                </CardContent>
+              </Card>
+            ) : (
+              contacts.map((contact) => (
+                <Card key={contact.id}>
+                  <CardHeader>
+                    <CardTitle>{contact.name}</CardTitle>
+                    <CardDescription>
+                      {contact.email} • {new Date(contact.createdAt).toLocaleString(language === 'en' ? 'en-US' : 'uk-UA')}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm">{contact.message}</p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -331,13 +473,44 @@ export default function Admin() {
 
             <div className="space-y-2">
               <Label>{t('admin.imageUrl')}</Label>
-              <Input
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                required
-                placeholder="https://..."
-                data-testid="input-pizza-image-url"
-              />
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    required
+                    placeholder="https://... or /attached_assets/..."
+                    data-testid="input-pizza-image-url"
+                    className="flex-1"
+                  />
+                  <Label htmlFor="image-upload" className="cursor-pointer">
+                    <Button type="button" variant="outline" disabled={uploadingImage} asChild>
+                      <span>
+                        {uploadingImage ? (language === 'en' ? 'Uploading...' : 'Завантаження...') : (language === 'en' ? 'Upload' : 'Завантажити')}
+                      </span>
+                    </Button>
+                  </Label>
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+                {formData.imageUrl && (
+                  <div className="relative w-full h-32 border rounded-lg overflow-hidden">
+                    <img 
+                      src={formData.imageUrl} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = '/attached_assets/generated_images/pizza_slice_icon.png';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">

@@ -20,7 +20,7 @@ async function seed() {
       descriptionUa: 'Свіжа моцарела, томатний соус, базилік та оливкова олія на ідеально хрусткій основі',
       category: 'classic',
       price: '12.99',
-      imageUrl: '/attached_assets/generated_images/Classic_margherita_pizza_photo_05343f97.png',
+      imageUrl: '/attached_assets/generated_images/pizza_slice_icon.png',
       available: true,
     },
     {
@@ -30,7 +30,7 @@ async function seed() {
       descriptionUa: 'Гостра пепероні, халапеньйо, гострий чилі та наш фірмовий вогняний соус',
       category: 'spicy',
       price: '15.99',
-      imageUrl: '/attached_assets/generated_images/Spicy_pepperoni_pizza_photo_550b5425.png',
+      imageUrl: '/attached_assets/generated_images/pizza_slice_icon.png',
       available: true,
     },
     {
@@ -40,7 +40,7 @@ async function seed() {
       descriptionUa: 'Болгарський перець, гриби, оливки, помідори та свіжі овочі',
       category: 'vegetarian',
       price: '13.99',
-      imageUrl: '/attached_assets/generated_images/Vegetarian_pizza_photo_11aa4cae.png',
+      imageUrl: '/attached_assets/generated_images/pizza_slice_icon.png',
       available: true,
     },
     {
@@ -50,7 +50,7 @@ async function seed() {
       descriptionUa: 'Нутелла, свіжа полуниця, цукрова пудра та крем',
       category: 'dessert',
       price: '11.99',
-      imageUrl: '/attached_assets/generated_images/Dessert_chocolate_pizza_photo_e383cb23.png',
+      imageUrl: '/attached_assets/generated_images/pizza_slice_icon.png',
       available: true,
     },
   ];

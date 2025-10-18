@@ -1,61 +1,61 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, boolean, decimal, serial } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Admin user table
-export const admins = pgTable("admins", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const admins = sqliteTable("admins", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
 });
 
 // Pizza categories: Classic, Spicy, Vegetarian, Dessert
-export const pizzas = pgTable("pizzas", {
-  id: serial("id").primaryKey(),
+export const pizzas = sqliteTable("pizzas", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   nameEn: text("name_en").notNull(),
   nameUa: text("name_ua").notNull(),
   descriptionEn: text("description_en").notNull(),
   descriptionUa: text("description_ua").notNull(),
   category: text("category").notNull(), // classic, spicy, vegetarian, dessert
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  price: text("price").notNull(),
   imageUrl: text("image_url").notNull(),
-  available: boolean("available").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  available: integer("available", { mode: 'boolean' }).default(true).notNull(),
+  createdAt: integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull(),
 });
 
 // Available ingredients for pizza customization
-export const ingredients = pgTable("ingredients", {
-  id: serial("id").primaryKey(),
+export const ingredients = sqliteTable("ingredients", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   nameEn: text("name_en").notNull(),
   nameUa: text("name_ua").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  available: boolean("available").default(true).notNull(),
+  price: text("price").notNull(),
+  available: integer("available", { mode: 'boolean' }).default(true).notNull(),
 });
 
 // Orders table
-export const orders = pgTable("orders", {
-  id: serial("id").primaryKey(),
+export const orders = sqliteTable("orders", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   customerName: text("customer_name").notNull(),
   customerEmail: text("customer_email").notNull(),
   customerPhone: text("customer_phone").notNull(),
   deliveryAddress: text("delivery_address").notNull(),
   pizzaId: integer("pizza_id").notNull(),
   size: text("size").notNull(), // small, medium, large
-  extraIngredients: text("extra_ingredients").array(), // array of ingredient IDs
-  totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
+  extraIngredients: text("extra_ingredients").notNull(), // JSON string of ingredient IDs
+  totalPrice: text("total_price").notNull(),
   status: text("status").default("pending").notNull(), // pending, confirmed, delivered, cancelled
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull(),
 });
 
 // Contact form submissions
-export const contacts = pgTable("contacts", {
-  id: serial("id").primaryKey(),
+export const contacts = sqliteTable("contacts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   email: text("email").notNull(),
   message: text("message").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull(),
 });
 
 // Relations
@@ -97,6 +97,7 @@ export const insertOrderSchema = createInsertSchema(orders).omit({
   totalPrice: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid price format"),
   customerEmail: z.string().email("Invalid email"),
   customerPhone: z.string().min(10, "Phone number too short"),
+  extraIngredients: z.string(), // JSON string
 });
 
 export const insertContactSchema = createInsertSchema(contacts).omit({

@@ -98,7 +98,7 @@ export default function Menu() {
               </Badge>
 
               {/* Price Badge */}
-              <Badge variant="default" className="absolute top-3 right-3 text-base px-3 py-1">
+              <Badge variant="default" className="absolute top-3 right-3 text-lg font-bold px-4 py-2 bg-primary shadow-lg">
                 ${pizza.price}
               </Badge>
 
@@ -112,9 +112,14 @@ export default function Menu() {
             </div>
 
             <CardHeader className="pb-3">
-              <CardTitle className="font-heading text-xl">
-                {language === 'en' ? pizza.nameEn : pizza.nameUa}
-              </CardTitle>
+              <div className="flex justify-between items-start gap-2">
+                <CardTitle className="font-heading text-xl flex-1">
+                  {language === 'en' ? pizza.nameEn : pizza.nameUa}
+                </CardTitle>
+                <span className="text-2xl font-bold text-primary whitespace-nowrap">
+                  ${pizza.price}
+                </span>
+              </div>
             </CardHeader>
 
             <CardContent className="pb-3">

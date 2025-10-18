@@ -62,20 +62,20 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center p-6 hover-elevate rounded-lg transition-all duration-300">
               <div className="text-5xl mb-4">🍕</div>
-              <h3 className="font-heading text-2xl font-bold mb-2">Premium Quality</h3>
-              <p className="text-muted-foreground">Handcrafted with the finest ingredients</p>
+              <h3 className="font-heading text-2xl font-bold mb-2">{t('home.premiumQuality')}</h3>
+              <p className="text-muted-foreground">{t('home.premiumDesc')}</p>
             </div>
             
             <div className="text-center p-6 hover-elevate rounded-lg transition-all duration-300">
               <div className="text-5xl mb-4">🔥</div>
-              <h3 className="font-heading text-2xl font-bold mb-2">Fire-Baked</h3>
-              <p className="text-muted-foreground">Cooked to perfection in our wood-fired oven</p>
+              <h3 className="font-heading text-2xl font-bold mb-2">{t('home.fireBaked')}</h3>
+              <p className="text-muted-foreground">{t('home.fireBakedDesc')}</p>
             </div>
             
             <div className="text-center p-6 hover-elevate rounded-lg transition-all duration-300">
               <div className="text-5xl mb-4">⚡</div>
-              <h3 className="font-heading text-2xl font-bold mb-2">Fast Delivery</h3>
-              <p className="text-muted-foreground">Hot and fresh to your door in 30 minutes</p>
+              <h3 className="font-heading text-2xl font-bold mb-2">{t('home.fastDelivery')}</h3>
+              <p className="text-muted-foreground">{t('home.fastDeliveryDesc')}</p>
             </div>
           </div>
         </div>

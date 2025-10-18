@@ -40,6 +40,7 @@ export interface IStorage {
 
   // Contacts
   createContact(contact: InsertContact): Promise<Contact>;
+  getAllContacts(): Promise<Contact[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -80,7 +81,7 @@ export class DatabaseStorage implements IStorage {
 
   async deletePizza(id: number): Promise<boolean> {
     const result = await db.delete(pizzas).where(eq(pizzas.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    return true; // SQLite doesn't return rowCount
   }
 
   // Ingredient methods
@@ -107,6 +108,10 @@ export class DatabaseStorage implements IStorage {
   async createContact(insertContact: InsertContact): Promise<Contact> {
     const [contact] = await db.insert(contacts).values(insertContact).returning();
     return contact;
+  }
+
+  async getAllContacts(): Promise<Contact[]> {
+    return await db.select().from(contacts);
   }
 }
 

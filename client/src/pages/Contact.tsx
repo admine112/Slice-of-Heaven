@@ -30,7 +30,48 @@ export default function Contact() {
   });
 
   const contactMutation = useMutation({
-    mutationFn: (data: ContactFormData) => apiRequest('POST', '/api/contacts', data),
+    mutationFn: async (data: ContactFormData) => {
+      try {
+        // Save to database
+        const response = await apiRequest('POST', '/api/contacts', data);
+        const dbResponse = await response.json();
+        console.log('Contact saved:', dbResponse);
+        
+        // Send email via Formspree
+        try {
+          const emailData = {
+            email: data.email,
+            name: data.name,
+            _subject: `💬 New Contact Message from ${data.name}`,
+            message: `💬 NEW CONTACT MESSAGE\n\n` +
+                     `From: ${data.name}\n` +
+                     `Email: ${data.email}\n\n` +
+                     `Message:\n${data.message}`
+          };
+          
+          const emailResponse = await fetch('https://formspree.io/f/meorndkv', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(emailData),
+          });
+          
+          if (!emailResponse.ok) {
+            console.error('Email send failed:', await emailResponse.text());
+          } else {
+            console.log('Contact email sent successfully');
+          }
+        } catch (emailError) {
+          console.error('Email error:', emailError);
+        }
+        
+        return dbResponse;
+      } catch (error) {
+        console.error('Contact creation error:', error);
+        throw error;
+      }
+    },
     onSuccess: () => {
       toast({
         title: t('common.success'),
