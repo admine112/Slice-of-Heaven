@@ -1,6 +1,10 @@
 // Vercel Serverless Function
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json());
 
@@ -8,9 +12,63 @@ app.use(express.json());
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'admin123';
 
-// ГЛОБАЛЬНОЕ хранилище данных (сохраняется между запросами)
-if (!global.pizzas) {
-  global.pizzas = [
+// Пути к файлам данных
+const DATA_DIR = path.join('/tmp', 'pizza-data');
+const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
+const CONTACTS_FILE = path.join(DATA_DIR, 'contacts.json');
+
+// Создаем директорию если не существует
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Функции для работы с файлами
+function readOrders() {
+  try {
+    if (fs.existsSync(ORDERS_FILE)) {
+      const data = fs.readFileSync(ORDERS_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('Error reading orders:', error);
+  }
+  return [];
+}
+
+function writeOrders(orders) {
+  try {
+    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Error writing orders:', error);
+    return false;
+  }
+}
+
+function readContacts() {
+  try {
+    if (fs.existsSync(CONTACTS_FILE)) {
+      const data = fs.readFileSync(CONTACTS_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('Error reading contacts:', error);
+  }
+  return [];
+}
+
+function writeContacts(contacts) {
+  try {
+    fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Error writing contacts:', error);
+    return false;
+  }
+}
+
+// Статические данные (не меняются)
+const pizzas = [
   {
     id: 1,
     nameEn: 'Margherita Classic',
@@ -56,10 +114,8 @@ if (!global.pizzas) {
     available: true,
   },
 ];
-}
 
-if (!global.ingredients) {
-  global.ingredients = [
+const ingredients = [
   { id: 1, nameEn: 'Extra Cheese', nameUa: 'Додатковий сир', price: '2.50', available: true },
   { id: 2, nameEn: 'Pepperoni', nameUa: 'Пепероні', price: '3.00', available: true },
   { id: 3, nameEn: 'Mushrooms', nameUa: 'Гриби', price: '2.00', available: true },
@@ -69,25 +125,8 @@ if (!global.ingredients) {
   { id: 7, nameEn: 'Bacon', nameUa: 'Бекон', price: '3.50', available: true },
   { id: 8, nameEn: 'Pineapple', nameUa: 'Ананас', price: '2.00', available: true },
 ];
-}
 
-if (!global.orders) {
-  global.orders = [];
-}
-
-if (!global.contacts) {
-  global.contacts = [];
-}
-
-if (!global.nextOrderId) {
-  global.nextOrderId = 1;
-}
-
-if (!global.nextContactId) {
-  global.nextContactId = 1;
-}
-
-// Routes - ВСЕГДА используем global напрямую!
+// Routes
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
@@ -98,11 +137,11 @@ app.post('/api/admin/login', (req, res) => {
 });
 
 app.get('/api/pizzas', (req, res) => {
-  res.json(global.pizzas);
+  res.json(pizzas);
 });
 
 app.get('/api/pizzas/:id', (req, res) => {
-  const pizza = global.pizzas.find(p => p.id === parseInt(req.params.id));
+  const pizza = pizzas.find(p => p.id === parseInt(req.params.id));
   if (pizza) {
     res.json(pizza);
   } else {
@@ -111,25 +150,25 @@ app.get('/api/pizzas/:id', (req, res) => {
 });
 
 app.post('/api/pizzas', (req, res) => {
-  const newPizza = { ...req.body, id: global.pizzas.length + 1 };
-  global.pizzas.push(newPizza);
+  const newPizza = { ...req.body, id: pizzas.length + 1 };
+  pizzas.push(newPizza);
   res.status(201).json(newPizza);
 });
 
 app.put('/api/pizzas/:id', (req, res) => {
-  const index = global.pizzas.findIndex(p => p.id === parseInt(req.params.id));
+  const index = pizzas.findIndex(p => p.id === parseInt(req.params.id));
   if (index !== -1) {
-    global.pizzas[index] = { ...global.pizzas[index], ...req.body };
-    res.json(global.pizzas[index]);
+    pizzas[index] = { ...pizzas[index], ...req.body };
+    res.json(pizzas[index]);
   } else {
     res.status(404).json({ error: 'Pizza not found' });
   }
 });
 
 app.delete('/api/pizzas/:id', (req, res) => {
-  const index = global.pizzas.findIndex(p => p.id === parseInt(req.params.id));
+  const index = pizzas.findIndex(p => p.id === parseInt(req.params.id));
   if (index !== -1) {
-    global.pizzas.splice(index, 1);
+    pizzas.splice(index, 1);
     res.json({ success: true });
   } else {
     res.status(404).json({ error: 'Pizza not found' });
@@ -137,46 +176,54 @@ app.delete('/api/pizzas/:id', (req, res) => {
 });
 
 app.get('/api/ingredients', (req, res) => {
-  res.json(global.ingredients);
+  res.json(ingredients);
 });
 
 app.post('/api/ingredients', (req, res) => {
-  const newIngredient = { ...req.body, id: global.ingredients.length + 1 };
-  global.ingredients.push(newIngredient);
+  const newIngredient = { ...req.body, id: ingredients.length + 1 };
+  ingredients.push(newIngredient);
   res.status(201).json(newIngredient);
 });
 
+// ORDERS - используем файлы!
 app.post('/api/orders', (req, res) => {
+  const orders = readOrders();
   const newOrder = { 
     ...req.body, 
-    id: global.nextOrderId++, 
+    id: orders.length + 1, 
     createdAt: new Date().toISOString(), 
     status: 'pending' 
   };
-  global.orders.push(newOrder);
-  console.log('Order created:', newOrder.id, 'Total orders:', global.orders.length);
+  orders.push(newOrder);
+  writeOrders(orders);
+  console.log('✅ Order created:', newOrder.id, 'Total:', orders.length);
   res.status(201).json(newOrder);
 });
 
 app.get('/api/orders', (req, res) => {
-  console.log('Getting orders, total:', global.orders.length);
-  res.json(global.orders);
+  const orders = readOrders();
+  console.log('📦 Getting orders, total:', orders.length);
+  res.json(orders);
 });
 
+// CONTACTS - используем файлы!
 app.post('/api/contacts', (req, res) => {
+  const contacts = readContacts();
   const newContact = { 
     ...req.body, 
-    id: global.nextContactId++, 
+    id: contacts.length + 1, 
     createdAt: new Date().toISOString() 
   };
-  global.contacts.push(newContact);
-  console.log('Contact created:', newContact.id, 'Total contacts:', global.contacts.length);
+  contacts.push(newContact);
+  writeContacts(contacts);
+  console.log('✅ Contact created:', newContact.id, 'Total:', contacts.length);
   res.status(201).json(newContact);
 });
 
 app.get('/api/contacts', (req, res) => {
-  console.log('Getting contacts, total:', global.contacts.length);
-  res.json(global.contacts);
+  const contacts = readContacts();
+  console.log('💬 Getting contacts, total:', contacts.length);
+  res.json(contacts);
 });
 
 export default app;
