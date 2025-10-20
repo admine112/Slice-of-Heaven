@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Trash2, Plus, LogOut, Pizza as PizzaIcon, ShoppingCart, MessageSquare } from 'lucide-react';
+import { Edit, Trash2, Plus, LogOut, Pizza as PizzaIcon, ShoppingCart, MessageSquare, RefreshCw } from 'lucide-react';
 import type { Pizza, InsertPizza, Order, Contact } from '@shared/schema';
 
 export default function Admin() {
@@ -325,6 +325,20 @@ export default function Admin() {
 
         {/* Orders Tab */}
         <TabsContent value="orders">
+          <div className="mb-4 flex justify-between items-center">
+            <h2 className="text-lg font-semibold">
+              {language === 'en' ? 'Orders' : 'Замовлення'} ({orders.length})
+            </h2>
+            <Button 
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/orders'] })}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {language === 'en' ? 'Refresh' : 'Оновити'}
+            </Button>
+          </div>
           <div className="space-y-4">
             {orders.length === 0 ? (
               <Card>
@@ -376,6 +390,20 @@ export default function Admin() {
 
         {/* Contacts Tab */}
         <TabsContent value="contacts">
+          <div className="mb-4 flex justify-between items-center">
+            <h2 className="text-lg font-semibold">
+              {language === 'en' ? 'Messages' : 'Повідомлення'} ({contacts.length})
+            </h2>
+            <Button 
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/contacts'] })}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {language === 'en' ? 'Refresh' : 'Оновити'}
+            </Button>
+          </div>
           <div className="space-y-4">
             {contacts.length === 0 ? (
               <Card>
