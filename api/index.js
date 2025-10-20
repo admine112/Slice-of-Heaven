@@ -87,13 +87,7 @@ if (!global.nextContactId) {
   global.nextContactId = 1;
 }
 
-// Ссылки на глобальные данные
-const pizzas = global.pizzas;
-const ingredients = global.ingredients;
-const orders = global.orders;
-const contacts = global.contacts;
-
-// Routes
+// Routes - ВСЕГДА используем global напрямую!
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
@@ -104,11 +98,11 @@ app.post('/api/admin/login', (req, res) => {
 });
 
 app.get('/api/pizzas', (req, res) => {
-  res.json(pizzas);
+  res.json(global.pizzas);
 });
 
 app.get('/api/pizzas/:id', (req, res) => {
-  const pizza = pizzas.find(p => p.id === parseInt(req.params.id));
+  const pizza = global.pizzas.find(p => p.id === parseInt(req.params.id));
   if (pizza) {
     res.json(pizza);
   } else {
@@ -117,25 +111,25 @@ app.get('/api/pizzas/:id', (req, res) => {
 });
 
 app.post('/api/pizzas', (req, res) => {
-  const newPizza = { ...req.body, id: pizzas.length + 1 };
-  pizzas.push(newPizza);
+  const newPizza = { ...req.body, id: global.pizzas.length + 1 };
+  global.pizzas.push(newPizza);
   res.status(201).json(newPizza);
 });
 
 app.put('/api/pizzas/:id', (req, res) => {
-  const index = pizzas.findIndex(p => p.id === parseInt(req.params.id));
+  const index = global.pizzas.findIndex(p => p.id === parseInt(req.params.id));
   if (index !== -1) {
-    pizzas[index] = { ...pizzas[index], ...req.body };
-    res.json(pizzas[index]);
+    global.pizzas[index] = { ...global.pizzas[index], ...req.body };
+    res.json(global.pizzas[index]);
   } else {
     res.status(404).json({ error: 'Pizza not found' });
   }
 });
 
 app.delete('/api/pizzas/:id', (req, res) => {
-  const index = pizzas.findIndex(p => p.id === parseInt(req.params.id));
+  const index = global.pizzas.findIndex(p => p.id === parseInt(req.params.id));
   if (index !== -1) {
-    pizzas.splice(index, 1);
+    global.pizzas.splice(index, 1);
     res.json({ success: true });
   } else {
     res.status(404).json({ error: 'Pizza not found' });
@@ -143,33 +137,46 @@ app.delete('/api/pizzas/:id', (req, res) => {
 });
 
 app.get('/api/ingredients', (req, res) => {
-  res.json(ingredients);
+  res.json(global.ingredients);
 });
 
 app.post('/api/ingredients', (req, res) => {
-  const newIngredient = { ...req.body, id: ingredients.length + 1 };
-  ingredients.push(newIngredient);
+  const newIngredient = { ...req.body, id: global.ingredients.length + 1 };
+  global.ingredients.push(newIngredient);
   res.status(201).json(newIngredient);
 });
 
 app.post('/api/orders', (req, res) => {
-  const newOrder = { ...req.body, id: global.nextOrderId++, createdAt: new Date().toISOString(), status: 'pending' };
+  const newOrder = { 
+    ...req.body, 
+    id: global.nextOrderId++, 
+    createdAt: new Date().toISOString(), 
+    status: 'pending' 
+  };
   global.orders.push(newOrder);
+  console.log('Order created:', newOrder.id, 'Total orders:', global.orders.length);
   res.status(201).json(newOrder);
 });
 
 app.get('/api/orders', (req, res) => {
-  res.json(orders);
+  console.log('Getting orders, total:', global.orders.length);
+  res.json(global.orders);
 });
 
 app.post('/api/contacts', (req, res) => {
-  const newContact = { ...req.body, id: global.nextContactId++, createdAt: new Date().toISOString() };
+  const newContact = { 
+    ...req.body, 
+    id: global.nextContactId++, 
+    createdAt: new Date().toISOString() 
+  };
   global.contacts.push(newContact);
+  console.log('Contact created:', newContact.id, 'Total contacts:', global.contacts.length);
   res.status(201).json(newContact);
 });
 
 app.get('/api/contacts', (req, res) => {
-  res.json(contacts);
+  console.log('Getting contacts, total:', global.contacts.length);
+  res.json(global.contacts);
 });
 
 export default app;

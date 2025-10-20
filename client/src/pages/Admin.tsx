@@ -39,22 +39,25 @@ export default function Admin() {
     available: true,
   });
 
-  const { data: pizzas = [], isLoading } = useQuery<Pizza[]>({
+  const { data: pizzas = [], isLoading, refetch: refetchPizzas } = useQuery<Pizza[]>({
     queryKey: ['/api/pizzas'],
     enabled: isLoggedIn,
-    refetchInterval: 5000, // Автообновление каждые 5 секунд
+    refetchInterval: 2000, // Автообновление каждые 2 секунды
+    staleTime: 0, // Всегда считать данные устаревшими
   });
 
-  const { data: orders = [] } = useQuery<Order[]>({
+  const { data: orders = [], refetch: refetchOrders } = useQuery<Order[]>({
     queryKey: ['/api/orders'],
     enabled: isLoggedIn,
-    refetchInterval: 3000, // Автообновление каждые 3 секунды
+    refetchInterval: 2000, // Автообновление каждые 2 секунды
+    staleTime: 0, // Всегда считать данные устаревшими
   });
 
-  const { data: contacts = [] } = useQuery<Contact[]>({
+  const { data: contacts = [], refetch: refetchContacts } = useQuery<Contact[]>({
     queryKey: ['/api/contacts'],
     enabled: isLoggedIn,
-    refetchInterval: 5000, // Автообновление каждые 5 секунд
+    refetchInterval: 2000, // Автообновление каждые 2 секунды
+    staleTime: 0, // Всегда считать данные устаревшими
   });
 
   const loginMutation = useMutation({
@@ -330,7 +333,13 @@ export default function Admin() {
               {language === 'en' ? 'Orders' : 'Замовлення'} ({orders.length})
             </h2>
             <Button 
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/orders'] })}
+              onClick={() => {
+                refetchOrders();
+                toast({
+                  title: language === 'en' ? 'Refreshed' : 'Оновлено',
+                  description: language === 'en' ? 'Orders updated' : 'Замовлення оновлено',
+                });
+              }}
               variant="outline"
               size="sm"
               className="gap-2"
@@ -395,7 +404,13 @@ export default function Admin() {
               {language === 'en' ? 'Messages' : 'Повідомлення'} ({contacts.length})
             </h2>
             <Button 
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/contacts'] })}
+              onClick={() => {
+                refetchContacts();
+                toast({
+                  title: language === 'en' ? 'Refreshed' : 'Оновлено',
+                  description: language === 'en' ? 'Messages updated' : 'Повідомлення оновлено',
+                });
+              }}
               variant="outline"
               size="sm"
               className="gap-2"
