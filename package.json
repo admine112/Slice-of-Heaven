@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx server/simple-index.ts",
     "dev:old": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/simple-index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "build:old": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "build": "vite build",
+    "build:server": "esbuild server/simple-index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/simple-index.js",
-    "check": "tsc"
+    "check": "tsc",
+    "vercel-build": "vite build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
