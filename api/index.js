@@ -8,8 +8,9 @@ app.use(express.json());
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'admin123';
 
-// Simple data storage
-const pizzas = [
+// ГЛОБАЛЬНОЕ хранилище данных (сохраняется между запросами)
+if (!global.pizzas) {
+  global.pizzas = [
   {
     id: 1,
     nameEn: 'Margherita Classic',
@@ -55,8 +56,10 @@ const pizzas = [
     available: true,
   },
 ];
+}
 
-const ingredients = [
+if (!global.ingredients) {
+  global.ingredients = [
   { id: 1, nameEn: 'Extra Cheese', nameUa: 'Додатковий сир', price: '2.50', available: true },
   { id: 2, nameEn: 'Pepperoni', nameUa: 'Пепероні', price: '3.00', available: true },
   { id: 3, nameEn: 'Mushrooms', nameUa: 'Гриби', price: '2.00', available: true },
@@ -66,9 +69,29 @@ const ingredients = [
   { id: 7, nameEn: 'Bacon', nameUa: 'Бекон', price: '3.50', available: true },
   { id: 8, nameEn: 'Pineapple', nameUa: 'Ананас', price: '2.00', available: true },
 ];
+}
 
-const orders = [];
-const contacts = [];
+if (!global.orders) {
+  global.orders = [];
+}
+
+if (!global.contacts) {
+  global.contacts = [];
+}
+
+if (!global.nextOrderId) {
+  global.nextOrderId = 1;
+}
+
+if (!global.nextContactId) {
+  global.nextContactId = 1;
+}
+
+// Ссылки на глобальные данные
+const pizzas = global.pizzas;
+const ingredients = global.ingredients;
+const orders = global.orders;
+const contacts = global.contacts;
 
 // Routes
 app.post('/api/admin/login', (req, res) => {
@@ -130,8 +153,8 @@ app.post('/api/ingredients', (req, res) => {
 });
 
 app.post('/api/orders', (req, res) => {
-  const newOrder = { ...req.body, id: orders.length + 1, createdAt: new Date() };
-  orders.push(newOrder);
+  const newOrder = { ...req.body, id: global.nextOrderId++, createdAt: new Date().toISOString(), status: 'pending' };
+  global.orders.push(newOrder);
   res.status(201).json(newOrder);
 });
 
@@ -140,8 +163,8 @@ app.get('/api/orders', (req, res) => {
 });
 
 app.post('/api/contacts', (req, res) => {
-  const newContact = { ...req.body, id: contacts.length + 1, createdAt: new Date() };
-  contacts.push(newContact);
+  const newContact = { ...req.body, id: global.nextContactId++, createdAt: new Date().toISOString() };
+  global.contacts.push(newContact);
   res.status(201).json(newContact);
 });
 

@@ -285,8 +285,6 @@ https://formspree.io/forms/meorndkv/integration
 
 ---
 
-## 📊 Измененные файлы
-
 ### Client:
 - `client/src/pages/Checkout.tsx` - улучшена обработка заказов и email
 - `client/src/components/Header.tsx` - закрытие меню при переходе
@@ -295,7 +293,6 @@ https://formspree.io/forms/meorndkv/integration
 
 ### Документация:
 - `BUGFIXES.md` - этот файл
-
 ---
 
 ## ✨ Результаты
