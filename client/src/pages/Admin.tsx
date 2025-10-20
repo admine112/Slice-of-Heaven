@@ -328,6 +328,15 @@ export default function Admin() {
 
         {/* Orders Tab */}
         <TabsContent value="orders">
+          {/* Demo Warning */}
+          <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              ⚠️ {language === 'en' 
+                ? 'Demo Mode: Orders are stored temporarily and may reset. For production, use a database.' 
+                : 'Демо режим: Замовлення зберігаються тимчасово і можуть скидатися. Для production потрібна база даних.'}
+            </p>
+          </div>
+          
           <div className="mb-4 flex justify-between items-center">
             <h2 className="text-lg font-semibold">
               {language === 'en' ? 'Orders' : 'Замовлення'} ({orders.length})
@@ -399,6 +408,15 @@ export default function Admin() {
 
         {/* Contacts Tab */}
         <TabsContent value="contacts">
+          {/* Demo Warning */}
+          <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              ⚠️ {language === 'en' 
+                ? 'Demo Mode: Messages are stored temporarily and may reset. For production, use a database.' 
+                : 'Демо режим: Повідомлення зберігаються тимчасово і можуть скидатися. Для production потрібна база даних.'}
+            </p>
+          </div>
+          
           <div className="mb-4 flex justify-between items-center">
             <h2 className="text-lg font-semibold">
               {language === 'en' ? 'Messages' : 'Повідомлення'} ({contacts.length})
