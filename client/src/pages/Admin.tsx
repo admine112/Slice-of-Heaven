@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,10 @@ import type { Pizza, InsertPizza, Order, Contact } from '@shared/schema';
 export default function Admin() {
   const { t, language } = useI18n();
   const { toast } = useToast();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    // Сохраняем состояние входа в localStorage
+    return localStorage.getItem('adminLoggedIn') === 'true';
+  });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [editingPizza, setEditingPizza] = useState<Pizza | null>(null);
@@ -39,16 +42,19 @@ export default function Admin() {
   const { data: pizzas = [], isLoading } = useQuery<Pizza[]>({
     queryKey: ['/api/pizzas'],
     enabled: isLoggedIn,
+    refetchInterval: 5000, // Автообновление каждые 5 секунд
   });
 
   const { data: orders = [] } = useQuery<Order[]>({
     queryKey: ['/api/orders'],
     enabled: isLoggedIn,
+    refetchInterval: 3000, // Автообновление каждые 3 секунды
   });
 
   const { data: contacts = [] } = useQuery<Contact[]>({
     queryKey: ['/api/contacts'],
     enabled: isLoggedIn,
+    refetchInterval: 5000, // Автообновление каждые 5 секунд
   });
 
   const loginMutation = useMutation({
@@ -56,6 +62,7 @@ export default function Admin() {
       apiRequest('POST', '/api/admin/login', data),
     onSuccess: () => {
       setIsLoggedIn(true);
+      localStorage.setItem('adminLoggedIn', 'true'); // Сохраняем в localStorage
       toast({
         title: t('common.success'),
         description: language === 'en' ? 'Logged in successfully' : 'Успішний вхід',
@@ -242,7 +249,10 @@ export default function Admin() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6 md:mb-8">
         <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">{t('admin.title')}</h1>
-        <Button variant="outline" onClick={() => setIsLoggedIn(false)} data-testid="button-admin-logout">
+        <Button variant="outline" onClick={() => {
+          setIsLoggedIn(false);
+          localStorage.removeItem('adminLoggedIn'); // Удаляем из localStorage
+        }} data-testid="button-admin-logout">
           <LogOut className="mr-2 h-4 w-4" />
           {t('admin.logout')}
         </Button>
@@ -348,6 +358,12 @@ export default function Admin() {
                       </div>
                     </div>
                     <div className="pt-2 border-t">
+                      <p className="text-sm font-medium">{language === 'en' ? 'Pizza' : 'Піца'}: {
+                        (() => {
+                          const pizza = pizzas.find(p => p.id === order.pizzaId);
+                          return pizza ? (language === 'en' ? pizza.nameEn : pizza.nameUa) : `ID: ${order.pizzaId}`;
+                        })()
+                      }</p>
                       <p className="text-sm font-medium">{language === 'en' ? 'Size' : 'Розмір'}: {order.size}</p>
                       <p className="text-lg font-bold text-primary">{language === 'en' ? 'Total' : 'Разом'}: ${order.totalPrice}</p>
                     </div>
